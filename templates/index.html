@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College FAQ - AI Support Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-1: #1e3a5f;
+            --bg-2: #2d5a87;
+            --bg-3: #1e3a5f;
+
+            --surface: #ffffff;
+            --surface-2: #f8fafc;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --muted: #64748b;
+
+            --brand: #2563eb;
+            --brand-2: #1d4ed8;
+            --brand-soft: rgba(37, 99, 235, 0.12);
+
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        body[data-theme="dark"] {
+            --bg-1: #020617;
+            --bg-2: #0b2340;
+            --bg-3: #020617;
+
+            --surface: #0b1220;
+            --surface-2: #0f172a;
+            --border: rgba(148, 163, 184, 0.22);
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+
+            --brand: #60a5fa;
+            --brand-2: #3b82f6;
+            --brand-soft: rgba(96, 165, 250, 0.14);
+
+            --shadow: 0 10px 45px rgba(0, 0, 0, 0.55);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: var(--text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+            max-height: 700px;
+        }
+
+        .header {
+            background: linear-gradient(90deg, var(--brand) 0%, var(--brand-2) 100%);
+            color: white;
+            padding: 24px;
+            position: relative;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .header-title {
+            min-width: 0;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            color: white;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: transform 0.12s ease, background 0.2s ease;
+            user-select: none;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+            transform: translateY(-1px);
+        }
+
+        .icon-btn:active {
+            transform: translateY(0px);
+        }
+
+        .icon-btn.recording {
+            background: rgba(239, 68, 68, 0.18);
+            border-color: rgba(239, 68, 68, 0.35);
+            animation: pulse 1.1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: translateY(0);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.0);
+            }
+
+            50% {
+                transform: translateY(-1px);
+                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.12);
+            }
+        }
+
+        .status-pill {
+            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            font-size: 0.85rem;
+            width: fit-content;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 99px;
+            background: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.22);
+        }
+
+        .status-dot.busy {
+            background: #fbbf24;
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.22);
+        }
+
+        .status-dot.listening {
+            background: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.22);
+        }
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--surface-2);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--brand);
+            color: white;
+        }
+
+        .message .meta-line {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .message .actions-row {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .mini-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-size: 0.85rem;
+        }
+
+        .mini-btn:hover {
+            background: var(--brand-soft);
+        }
+
+        .message .feedback-buttons {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .feedback-btn {
+            background: none;
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        .feedback-btn:hover {
+            background: var(--brand-soft);
+        }
+
+        .feedback-btn.active {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
+        }
+
+        .feedback-btn.active.thumbs-down {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .welcome-msg {
+            text-align: center;
+            color: var(--muted);
+            padding: 24px;
+            font-size: 0.95rem;
+        }
+
+        .input-area {
+            padding: 16px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+        }
+
+        .chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .chip {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            padding: 8px 10px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            user-select: none;
+        }
+
+        .chip:hover {
+            background: var(--brand-soft);
+            border-color: rgba(37, 99, 235, 0.4);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        #questionInput {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        #questionInput:focus {
+            outline: none;
+            border-color: var(--brand);
+        }
+
+        #questionInput::placeholder {
+            color: #94a3b8;
+        }
+
+        #sendBtn {
+            padding: 14px 24px;
+            background: var(--brand);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        #sendBtn:hover {
+            background: var(--brand-2);
+        }
+
+        #sendBtn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .typing {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: var(--muted);
+            opacity: 0.5;
+            animation: bounce 1.1s infinite;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: translateY(-5px);
+                opacity: 1;
+            }
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 680px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .modal-header h2 {
+            font-size: 1.05rem;
+            margin: 0;
+        }
+
+        .modal-body {
+            padding: 14px 18px 18px;
+            background: var(--surface);
+        }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        @media (max-width: 520px) {
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .faq-item {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 12px;
+            cursor: pointer;
+            background: var(--surface);
+            transition: background 0.2s ease, transform 0.12s ease;
+        }
+
+        .faq-item:hover {
+            background: var(--brand-soft);
+            transform: translateY(-1px);
+        }
+
+        .faq-item .kicker {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .faq-item .q {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.92);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-4px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-row">
+                <div class="header-title">
+                    <h1>College FAQ Assistant</h1>
+                    <p>Ask about admissions, fees, exams, hostel & more</p>
+                    <div class="status-pill" title="Connection & activity status">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">Ready</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" id="faqBtn" title="Open FAQ shortcuts (Ctrl+/)">?</button>
+                    <button class="icon-btn" id="micBtn" title="Voice input (Ctrl+M)">🎤</button>
+                    <button class="icon-btn" id="speakBtn" title="Read answers aloud">🔈</button>
+                    <button class="icon-btn" id="siteBtn" title="Open college website">🏫</button>
+                    <button class="icon-btn" id="themeBtn" title="Toggle theme">☾</button>
+                    <button class="icon-btn" id="clearBtn" title="Clear chat">⟲</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat messages area -->
+        <div class="chat-area" id="chatArea">
+            <div class="welcome-msg" id="welcomeMsg">
+                Hi! I’m your college support assistant.
+                <br><br>
+                Try one of the quick questions below, or type your own.
+            </div>
+        </div>
+
+        <!-- Input area -->
+        <div class="input-area">
+            <div class="chip-row" id="chipRow" aria-label="Quick questions"></div>
+            <div class="input-group">
+                <input type="text" id="questionInput" placeholder="Ask your question..." autocomplete="off">
+                <button id="sendBtn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ modal -->
+    <div class="modal-backdrop" id="faqModal" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Quick FAQs</h2>
+                <button class="icon-btn" id="closeFaqBtn" title="Close">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--muted); margin-bottom: 12px; line-height: 1.5;">
+                    Click a question to send it instantly.
+                </p>
+                <div class="faq-grid" id="faqGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">Saved.</div>
+
+    <script>
+        // DOM elements
+        const chatArea = document.getElementById('chatArea');
+        const questionInput = document.getElementById('questionInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const welcomeMsg = document.getElementById('welcomeMsg');
+        const chipRow = document.getElementById('chipRow');
+        const faqBtn = document.getElementById('faqBtn');
+        const micBtn = document.getElementById('micBtn');
+        const speakBtn = document.getElementById('speakBtn');
+        const siteBtn = document.getElementById('siteBtn');
+        const themeBtn = document.getElementById('themeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const faqModal = document.getElementById('faqModal');
+        const closeFaqBtn = document.getElementById('closeFaqBtn');
+        const faqGrid = document.getElementById('faqGrid');
+        const toastEl = document.getElementById('toast');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+
+        const QUICK_QUESTIONS = [{
+                group: "Admissions",
+                q: "What are the admission requirements?"
+            },
+            {
+                group: "Admissions",
+                q: "How do I apply for admission?"
+            },
+            {
+                group: "Fees",
+                q: "What is the tuition fee structure?"
+            },
+            {
+                group: "Fees",
+                q: "Are scholarships available?"
+            },
+            {
+                group: "Exams",
+                q: "When are the semester exams held?"
+            },
+            {
+                group: "Hostel",
+                q: "Is hostel accommodation available?"
+            },
+            {
+                group: "Hostel",
+                q: "What are the hostel fees?"
+            },
+            {
+                group: "Office",
+                q: "What are the office timings?"
+            }
+        ];
+
+        let showDebugMeta = true;
+        let pendingBotEl = null;
+        let speakEnabled = false; // default OFF (toggle + persisted)
+        let isRecording = false;
+        let recognition = null;
+        const autoSendFromVoice = true;
+
+        function setStatus(mode) {
+            if (!statusDot || !statusText) return;
+            if (mode === "busy") {
+                statusDot.classList.add("busy");
+                statusDot.classList.remove("listening");
+                statusText.textContent = "Thinking…";
+                return;
+            }
+            if (mode === "listening") {
+                statusDot.classList.remove("busy");
+                statusDot.classList.add("listening");
+                statusText.textContent = "Listening…";
+                return;
+            }
+            statusDot.classList.remove("busy");
+            statusDot.classList.remove("listening");
+            statusText.textContent = "Ready";
+        }
+
+        function showToast(text) {
+            if (!toastEl) return;
+            toastEl.textContent = text;
+            toastEl.classList.add('show');
+            window.clearTimeout(showToast._t);
+            showToast._t = window.setTimeout(() => toastEl.classList.remove('show'), 1500);
+        }
+
+        function setTheme(theme) {
+            document.body.dataset.theme = theme;
+            localStorage.setItem("theme", theme);
+            if (themeBtn) themeBtn.textContent = theme === "dark" ? "☀" : "☾";
+        }
+
+        function setSpeakEnabled(on) {
+            speakEnabled = Boolean(on);
+            localStorage.setItem("speakEnabled", speakEnabled ? "1" : "0");
+            if (speakBtn) speakBtn.textContent = speakEnabled ? "🔊" : "🔈";
+        }
+
+        function stopSpeaking() {
+            try {
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            } catch (e) {}
+        }
+
+        function speakText(text) {
+            if (!speakEnabled) return;
+            if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') return;
+            const t = (text || "").toString().trim();
+            if (!t) return;
+
+            stopSpeaking();
+            const utter = new SpeechSynthesisUtterance(t);
+            utter.rate = 1.0;
+            utter.pitch = 1.0;
+            utter.volume = 1.0;
+            try {
+                const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+                const preferred = voices.find(v => (v.lang || "").toLowerCase().startsWith("en"));
+                if (preferred) utter.voice = preferred;
+            } catch (e) {}
+            window.speechSynthesis.speak(utter);
+        }
+
+        function toggleTheme() {
+            const current = document.body.dataset.theme || "light";
+            setTheme(current === "dark" ? "light" : "dark");
+        }
+
+        function initSpeechRecognition() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) return null;
+
+            const r = new SR();
+            r.continuous = false;
+            r.interimResults = true;
+            r.lang = 'en-US';
+
+            r.onstart = () => {
+                isRecording = true;
+                if (micBtn) micBtn.classList.add('recording');
+                setStatus("listening");
+                showToast("Listening…");
+            };
+
+            r.onerror = (event) => {
+                showToast(`Voice error: ${event.error || 'unknown'}`);
+            };
+
+            r.onend = () => {
+                isRecording = false;
+                if (micBtn) micBtn.classList.remove('recording');
+                setStatus("ready");
+            };
+
+            r.onresult = (event) => {
+                let finalText = "";
+                let interimText = "";
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const res = event.results[i];
+                    const transcript = (res[0] && res[0].transcript) ? res[0].transcript : "";
+                    if (res.isFinal) finalText += transcript;
+                    else interimText += transcript;
+                }
+
+                const next = (finalText || interimText || "").trim();
+                if (next) questionInput.value = next;
+
+                if (autoSendFromVoice && finalText && finalText.trim()) {
+                    if (!pendingBotEl) sendQuestion();
+                }
+            };
+
+            return r;
+        }
+
+        function toggleMic() {
+            if (!recognition) recognition = initSpeechRecognition();
+            if (!recognition) {
+                showToast("Voice input not supported in this browser.");
+                return;
+            }
+
+            try {
+                if (isRecording) recognition.stop();
+                else recognition.start();
+            } catch (e) {
+                showToast("Could not start mic. Try again.");
+            }
+        }
+
+        function openFaqModal() {
+            if (!faqModal) return;
+            faqModal.classList.add('open');
+            faqModal.setAttribute("aria-hidden", "false");
+        }
+
+        function closeFaqModal() {
+            if (!faqModal) return;
+            faqModal.classList.remove('open');
+            faqModal.setAttribute("aria-hidden", "true");
+        }
+
+        function clearChat() {
+            // Keep welcome message node, remove others.
+            [...chatArea.querySelectorAll('.message')].forEach(n => n.remove());
+            if (welcomeMsg) welcomeMsg.style.display = '';
+            showToast("Chat cleared.");
+        }
+
+        function scrollToBottom() {
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // Add a message to the chat
+        function addMessage(text, isUser, meta = null) {
+            // Hide welcome message on first real message
+            if (welcomeMsg) welcomeMsg.style.display = 'none';
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+
+            if (isUser) {
+                msgDiv.textContent = text;
+            } else {
+                // Show answer text
+                const answerDiv = document.createElement('div');
+                answerDiv.textContent = text;
+                msgDiv.appendChild(answerDiv);
+
+                // Show debug meta (confidence + matched FAQ) to make behavior understandable
+                if (showDebugMeta && meta && typeof meta.confidence === 'number') {
+                    const metaDiv = document.createElement('div');
+                    metaDiv.className = 'meta-line';
+                    metaDiv.textContent = `Confidence: ${meta.confidence} | Matched: ${meta.matched_faq || '—'}`;
+                    msgDiv.appendChild(metaDiv);
+                }
+
+                // Message actions (copy)
+                const actionsRow = document.createElement('div');
+                actionsRow.className = 'actions-row';
+                const leftHint = document.createElement('div');
+                leftHint.style.fontSize = '0.8rem';
+                leftHint.style.color = 'var(--muted)';
+                leftHint.textContent = 'Actions:';
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'mini-btn';
+                copyBtn.type = 'button';
+                copyBtn.textContent = 'Copy answer';
+                copyBtn.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        showToast("Copied.");
+                    } catch (e) {
+                        showToast("Copy failed.");
+                    }
+                });
+
+                const rightWrap = document.createElement('div');
+                rightWrap.style.display = 'flex';
+                rightWrap.style.gap = '8px';
+                rightWrap.style.alignItems = 'center';
+                rightWrap.appendChild(copyBtn);
+
+                // Optional: per-message speak controls (if browser supports it)
+                if ('speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined') {
+                    const speakOnceBtn = document.createElement('button');
+                    speakOnceBtn.className = 'mini-btn';
+                    speakOnceBtn.type = 'button';
+                    speakOnceBtn.textContent = 'Speak';
+                    speakOnceBtn.addEventListener('click', () => {
+                        // Speak even if global toggle is OFF (one-shot)
+                        const prev = speakEnabled;
+                        speakEnabled = true;
+                        speakText(text);
+                        speakEnabled = prev;
+                    });
+
+                    const stopBtn = document.createElement('button');
+                    stopBtn.className = 'mini-btn';
+                    stopBtn.type = 'button';
+                    stopBtn.textContent = 'Stop';
+                    stopBtn.addEventListener('click', stopSpeaking);
+
+                    rightWrap.appendChild(speakOnceBtn);
+                    rightWrap.appendChild(stopBtn);
+                }
+
+                actionsRow.appendChild(leftHint);
+                actionsRow.appendChild(rightWrap);
+                msgDiv.appendChild(actionsRow);
+
+                // Add feedback buttons for bot messages (except for "please contact office")
+                const answerForFeedback = meta && meta.answer ? meta.answer : text;
+                if (answerForFeedback && !text.includes('Please contact the office')) {
+                    const feedbackDiv = document.createElement('div');
+                    feedbackDiv.className = 'feedback-buttons';
+                    feedbackDiv.innerHTML = `
+                        <span style="color:var(--muted);font-size:0.8rem;">Was this helpful?</span>
+                        <button class="feedback-btn thumbs-up" data-feedback="helpful">👍 Helpful</button>
+                        <button class="feedback-btn thumbs-down" data-feedback="not_helpful">👎 Not helpful</button>
+                    `;
+
+                    const lastUserQuestion = chatArea.querySelector('.message.user:last-of-type');
+                    const userQuestion = lastUserQuestion ? lastUserQuestion.textContent : '';
+
+                    feedbackDiv.querySelectorAll('.feedback-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            if (this.classList.contains('active')) return;
+                            feedbackDiv.querySelectorAll('.feedback-btn').forEach(b => b.classList.remove('active'));
+                            this.classList.add('active');
+                            if (this.classList.contains('thumbs-down')) this.classList.add('thumbs-down');
+
+                            let comment = "";
+                            if (this.dataset.feedback === "not_helpful") {
+                                // lightweight way to capture why (shows a browser prompt)
+                                const resp = window.prompt("What was missing / what should I improve? (optional)", "");
+                                if (typeof resp === "string") comment = resp.trim();
+                            }
+
+                            fetch('/feedback', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        question: userQuestion,
+                                        answer: answerForFeedback,
+                                        feedback: this.dataset.feedback,
+                                        confidence: meta && typeof meta.confidence === "number" ? meta.confidence : null,
+                                        matched_faq: meta && meta.matched_faq ? meta.matched_faq : "",
+                                        comment: comment
+                                    })
+                                }).then(() => showToast("Feedback saved."))
+                                .catch(() => showToast("Feedback failed."));
+                        });
+                    });
+                    msgDiv.appendChild(feedbackDiv);
+                }
+            }
+
+            chatArea.appendChild(msgDiv);
+            scrollToBottom();
+            if (!isUser) speakText(text);
+            return msgDiv;
+        }
+
+        function addTypingIndicator() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message bot';
+            const row = document.createElement('div');
+            row.className = 'typing';
+            row.innerHTML = `
+                <span>Assistant</span>
+                <span class="dots" aria-hidden="true">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </span>
+            `;
+            wrapper.appendChild(row);
+            chatArea.appendChild(wrapper);
+            scrollToBottom();
+            return wrapper;
+        }
+
+        // Send question to backend
+        async function sendQuestion() {
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            if (pendingBotEl) return; // prevent double-send while waiting
+
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="loading"></span>';
+            setStatus("busy");
+
+            addMessage(question, true);
+            questionInput.value = '';
+
+            pendingBotEl = addTypingIndicator();
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question: question
+                    })
+                });
+
+                const data = await response.json();
+
+                if (pendingBotEl) pendingBotEl.remove();
+                pendingBotEl = null;
+
+                addMessage(data.answer, false, data);
+            } catch (err) {
+                if (pendingBotEl) pendingBotEl.remove();
+                pendingBotEl = null;
+                addMessage('Sorry, something went wrong. Please try again.', false);
+            }
+
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send';
+            setStatus("ready");
+            questionInput.focus();
+        }
+
+        function renderQuickQuestions() {
+            if (chipRow) {
+                chipRow.innerHTML = '';
+                const chips = QUICK_QUESTIONS.slice(0, 6);
+                chips.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'chip';
+                    btn.textContent = item.q;
+                    btn.addEventListener('click', () => {
+                        questionInput.value = item.q;
+                        sendQuestion();
+                    });
+                    chipRow.appendChild(btn);
+                });
+            }
+
+            if (faqGrid) {
+                faqGrid.innerHTML = '';
+                QUICK_QUESTIONS.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'faq-item';
+                    el.innerHTML = `<span class="kicker">${item.group}</span><div class="q">${item.q}</div>`;
+                    el.addEventListener('click', () => {
+                        closeFaqModal();
+                        questionInput.value = item.q;
+                        sendQuestion();
+                    });
+                    faqGrid.appendChild(el);
+                });
+            }
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendQuestion);
+        questionInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendQuestion();
+        });
+
+        if (faqBtn) faqBtn.addEventListener('click', openFaqModal);
+        if (siteBtn) siteBtn.addEventListener('click', () => {
+            window.location.href = 'https://jspmntc.edu.in/';
+        });
+        if (closeFaqBtn) closeFaqBtn.addEventListener('click', closeFaqModal);
+        if (faqModal) {
+            faqModal.addEventListener('click', (e) => {
+                if (e.target === faqModal) closeFaqModal();
+            });
+        }
+        if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+        if (clearBtn) clearBtn.addEventListener('click', clearChat);
+
+        // Keyboard shortcuts: Ctrl+/ for FAQ, Esc closes modal, Ctrl+K focuses input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeFaqModal();
+            if (e.ctrlKey && e.key.toLowerCase() === '/') {
+                e.preventDefault();
+                openFaqModal();
+            }
+            if (e.ctrlKey && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                questionInput.focus();
+            }
+        });
+
+        // Focus input on load
+        renderQuickQuestions();
+        setTheme(localStorage.getItem("theme") || "light");
+        questionInput.focus();
+    </script>
+</body>
+
+</html>

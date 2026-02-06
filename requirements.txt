@@ -1,0 +1,8 @@
+# AI Customer Support Assistant - Dependencies
+# Install with: pip install -r requirements.txt
+
+Flask>=2.3.0          # Web framework for backend
+scikit-learn>=1.3.0   # TF-IDF vectorizer and cosine similarity
+numpy>=1.24.0         # Numerical operations (used by scikit-learn)
+google-generativeai>=0.8.0  # Optional Gemini fallback (set GEMINI_API_KEY)
+python-dotenv>=1.0.0  # Optional: load GEMINI_API_KEY from .env file
